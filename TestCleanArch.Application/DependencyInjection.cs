@@ -1,7 +1,12 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
+using MassTransit;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using TestCleanArch.Application.Common.Interface;
+using TestCleanArch.Application.Common.RabbitMq;
 using TestCleanArch.Application.Common.Service;
 
 namespace TestCleanArch.Application
@@ -10,6 +15,8 @@ namespace TestCleanArch.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+          
+
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddMediatR(Assembly.GetExecutingAssembly());
 
@@ -23,6 +30,14 @@ namespace TestCleanArch.Application
             });
             services.AddMemoryCache(); // Add this line
 
+            #region Rabbit
+
+            services.TryAddSingleton<IRabbitMqConnection>
+                (sp => sp.GetRequiredService<IOptions<RabbitMqConnection>>().Value);
+
+            services.AddScoped<IBusPublish, BusPublish>();
+
+            #endregion
 
             return services;
         }

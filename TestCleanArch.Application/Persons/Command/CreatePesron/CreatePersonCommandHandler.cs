@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Hangfire;
 using Hangfire.Common;
+using MassTransit;
 using MediatR;
 using TestCleanArch.Application.Common.Interface;
+using TestCleanArch.Application.Common.RabbitMq;
 using TestCleanArch.Application.Persons.Dtos;
 using TestCleanArch.Common;
 using TestCleanArch.Domain.Models;
@@ -18,12 +21,15 @@ namespace TestCleanArch.Application.Persons.Command.CreatePesron
         protected readonly IMapper _mapper;
         protected readonly IRecurringJobManager _recurringJobManager;
         protected readonly IMailService _mailService;
-        public CreatePersonCommandHandler(ITestCleanArchDbContext context, IMapper mapper, IMailService mailService, IRecurringJobManager recurringJobManager)
+        private readonly IBusPublish _busPublish;
+
+        public CreatePersonCommandHandler(ITestCleanArchDbContext context, IMapper mapper, IMailService mailService, IRecurringJobManager recurringJobManager, IBusPublish busPublish)
         {
             _context = context;
             _mapper = mapper;
             _recurringJobManager = recurringJobManager;
             _mailService = mailService;
+            _busPublish = busPublish;
         }
         public async Task<PersonDto> Handle(CreatePersonCommand request, CancellationToken cancellationToken)
         {
@@ -50,6 +56,8 @@ namespace TestCleanArch.Application.Persons.Command.CreatePesron
                 To = person.Email
             })), Cron.Minutely());
 
+            _busPublish.Send("creatuser",
+                  JsonSerializer.Serialize(_mapper.Map<PersonDto>(person)));
 
             return _mapper.Map<PersonDto>(person);
         }

@@ -1,20 +1,16 @@
 using System;
-using System.Text;
 using Hangfire;
 using Hangfire.SqlServer;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TestCleanArch.Application;
 using TestCleanArch.Application.Authorize;
+using TestCleanArch.Application.Common.RabbitMq;
 using TestCleanArch.Common;
-using TestCleanArch.Domain.Models;
 using TestCleanArch.Persistence;
 
 namespace TestCleanArch.Api
@@ -55,6 +51,7 @@ namespace TestCleanArch.Api
             services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
             // configure strongly typed settings object
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            services.Configure<RabbitMqConnection>(Configuration.GetSection("RabbitMqConnection"));
 
             services.AddCors(options =>
             {
