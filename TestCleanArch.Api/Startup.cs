@@ -66,6 +66,7 @@ namespace TestCleanArch.Api
 
             services.AddApplication();
             services.AddPersistence(Configuration);
+            services.AddCommon();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

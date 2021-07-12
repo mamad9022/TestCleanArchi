@@ -21,7 +21,6 @@ namespace TestCleanArch.Application
             services.AddMediatR(Assembly.GetExecutingAssembly());
 
             services.AddTransient<IMediator, Mediator>();
-            services.AddTransient<IMailService, MailService>();
             services.AddTransient<IUserService, UserService>();
 
             services.AddStackExchangeRedisCache(options =>

@@ -8,5 +8,7 @@ namespace TestCleanArch.Application.Persons.Command.CreatePesron
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
+        public bool SendType { get; set; }
+
     }
 }

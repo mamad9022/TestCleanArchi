@@ -14,5 +14,6 @@ namespace TestCleanArch.Domain.Models
         [JsonIgnore]
         public string Password { get; set; }
         public string Email { get; set; }
+        public bool SendType { get; set; }
     }
 }

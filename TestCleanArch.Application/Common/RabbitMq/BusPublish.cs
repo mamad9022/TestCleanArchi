@@ -18,7 +18,7 @@ namespace TestCleanArch.Application.Common.RabbitMq
             {
                 HostName = _connection.Server,
                 UserName = _connection.UserName,
-                Password = _connection.Password
+                Password = _connection.Password,
             };
 
             var connection = factory.CreateConnection();
