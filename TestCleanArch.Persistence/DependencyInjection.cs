@@ -11,7 +11,8 @@ namespace TestCleanArch.Persistence
         public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<TestCleanArchDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("NorthwindDatabase")));
+                options.UseSqlServer(configuration.GetConnectionString("NorthwindDatabase")),
+                ServiceLifetime.Transient);
 
             services.AddScoped<ITestCleanArchDbContext>(provider => provider.GetService<TestCleanArchDbContext>());
 

@@ -34,7 +34,7 @@ namespace TestCleanArch.Application.Common.Service
         }
         public async Task<AuthenticateResponse> Authenticate(UserRequset request, string ip)
         {
-            var ipExist = await _distributedCache.GetStringAsync(ip, CancellationToken.None);
+            var ipExist = await _distributedCache.GetStringAsync(ip, default);
             if (ipExist != null)
             {
                 throw new Exception("حساب کاربری شما به مذت 2 دقیقه مسدود شده است");
@@ -49,7 +49,7 @@ namespace TestCleanArch.Application.Common.Service
                 int counter = _cache.Get<int>(ip);
                 if (counter == 3)
                 {
-                    await _distributedCache.SetRecordAsync(ip, ip, CancellationToken.None);
+                    await _distributedCache.SetRecordAsync(ip, ip, default);
                 }
                 counter++;
                 _cache.Set(ip, counter, cacheEntryOptions);
