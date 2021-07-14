@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using TestCleanArch.Api.Middleware;
 using TestCleanArch.Application;
 using TestCleanArch.Application.Authorize;
 using TestCleanArch.Application.Common.RabbitMq;
@@ -17,8 +19,6 @@ namespace TestCleanArch.Api
 {
     public class Startup
     {
-        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -29,8 +29,25 @@ namespace TestCleanArch.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
+            // configure strongly typed settings object
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
-          
+            services.AddCors();
+
+            services.AddApplication();
+
+            services.AddPersistence(Configuration);
+
+            services.AddCommon();
+
+            services.AddControllers();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TestCleanArch.Api", Version = "v1" });
+            });
+
+            #region Hangfire
             // Add Hangfire services.
             services.AddHangfire(configuration => configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -47,32 +64,19 @@ namespace TestCleanArch.Api
 
             // Add the processing server as IHostedService
             services.AddHangfireServer();
+            #endregion
 
-            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
-            // configure strongly typed settings object
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            #region RabbitMq
             services.Configure<RabbitMqConnection>(Configuration.GetSection("RabbitMqConnection"));
+            #endregion
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy(name: MyAllowSpecificOrigins,
-                    builder =>
-                    {
-                        builder.WithOrigins("http://example.com",
-                            "http://www.contoso.com");
-                    });
-            });
+            #region Logger
+            var serviceProvider = services.BuildServiceProvider();
+            var logger = serviceProvider.GetService<ILogger<ExceptionMiddleware>>();
+            services.AddSingleton(typeof(ILogger), logger);
+            #endregion 
 
-
-            services.AddApplication();
-            services.AddPersistence(Configuration);
-            services.AddCommon();
-
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TestCleanArch.Api", Version = "v1" });
-            });
+          
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -84,16 +88,25 @@ namespace TestCleanArch.Api
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TestCleanArch.Api v1"));
             }
-
+            else
+            {
+                app.UseHsts();
+            }
             app.UseHangfireDashboard();
 
             app.UseRouting();
 
-            app.UseCors(MyAllowSpecificOrigins);
+            app.UseCors(x => x
+                     .AllowAnyMethod()
+                     .AllowAnyHeader()
+                     .AllowCredentials()); // allow credentials
 
-         //  app.UseAuthorization();
-            // custom jwt auth middleware
-           app.UseMiddleware<JwtMiddleware>();
+            //  app.UseAuthorization();
+            #region middleware
+            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<UserIpMiddleware>();
+            app.UseMiddleware<JwtMiddleware>();
+            #endregion
 
             app.UseEndpoints(endpoints =>
             {

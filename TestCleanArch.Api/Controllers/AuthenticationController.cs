@@ -21,12 +21,9 @@ namespace TestCleanArch.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserRequset command)
         {
-            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            IActionResult response = Unauthorized();
-            var result = await _userService.Authenticate(command, clientIp);
+            var result = await _userService.Authenticate(command, HttpContext);
             if (result is null)
-            return response;
+            return Unauthorized();
           
             return Ok(result);
 

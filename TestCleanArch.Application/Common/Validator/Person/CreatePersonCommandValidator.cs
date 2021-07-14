@@ -7,9 +7,10 @@ namespace TestCleanArch.Application.Common.Validator.Person
     {
         public CreatePersonCommandValidator()
         {
-            RuleFor(x => x.FirstName).NotEmpty().WithMessage("First name is required");
-            RuleFor(x => x.LastName).NotEmpty().WithMessage("Last name is required");
-            RuleFor(x => x.Email).EmailAddress().NotEmpty().WithMessage("Email is required");
+            RuleFor(x => x.FirstName).NotNull().NotEmpty().WithMessage("First name is required");
+            RuleFor(x => x.LastName).NotNull().NotEmpty().WithMessage("Last name is required");
+            RuleFor(x => x.Email).EmailAddress().NotNull().NotEmpty().WithMessage("Email is required");
+            RuleFor(x => x.Password).NotNull().NotEmpty().WithMessage("Password is required");
         }
     }
 }

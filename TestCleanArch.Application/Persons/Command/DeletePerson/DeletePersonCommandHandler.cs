@@ -5,30 +5,37 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TestCleanArch.Application.Common.Exceptions;
 using TestCleanArch.Application.Common.Interface;
-using TestCleanArch.Domain.Models;
+using TestCleanArch.Common.Helper.Messages;
+using TestCleanArch.Common.Result;
 
 namespace TestCleanArch.Application.Persons.Command.DeletePerson
 {
-    public class DeletePersonCommandHandler : IRequestHandler<DeletePersonCommand, Guid>
+    public class DeletePersonCommandHandler : IRequestHandler<DeletePersonCommand, Result>
     {
         protected readonly ITestCleanArchDbContext _context;
-        public DeletePersonCommandHandler(ITestCleanArchDbContext context)
+        protected readonly IMemoryCache _cache;
+        
+        public DeletePersonCommandHandler(ITestCleanArchDbContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
-        public async Task<Guid> Handle(DeletePersonCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(DeletePersonCommand request, CancellationToken cancellationToken)
         {
             var person = await _context.Persons.SingleOrDefaultAsync(x => x.Id == request.Id);
             if (person is null)
-                throw new NotFoundException(nameof(Person), request.Id);
+                return Result.Failed(new NotFoundObjectResult
+                    (new ApiMessage("موردی یافت نشد")));
 
             _context.Persons.Remove(person);
             await _context.SaveAsync(cancellationToken);
-
-            return person.Id;
+            _cache.Remove("Persons");
+            return Result.SuccessFul();
         }
     }
 }

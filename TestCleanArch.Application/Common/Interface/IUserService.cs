@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Threading.Tasks;
 using TestCleanArch.Application.Authorize;
 using TestCleanArch.Application.Common.Dtos;
@@ -8,7 +9,7 @@ namespace TestCleanArch.Application.Common.Interface
 {
     public interface IUserService
     {
-        Task<AuthenticateResponse> Authenticate(UserRequset request, string ip);
-        Task<Person> GetById(Guid userId);
+        Task<AuthenticateResponse> Authenticate(UserRequset request, HttpContext httpContext);
+        Task<Person> GetByIdAsync(Guid userId);
     }
 }

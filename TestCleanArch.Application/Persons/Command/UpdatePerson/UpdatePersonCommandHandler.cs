@@ -1,34 +1,39 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TestCleanArch.Application.Common.Exceptions;
+using Microsoft.Extensions.Caching.Memory;
 using TestCleanArch.Application.Common.Interface;
-using TestCleanArch.Domain.Models;
+using TestCleanArch.Common.Helper.Messages;
+using TestCleanArch.Common.Result;
 
 namespace TestCleanArch.Application.Persons.Command.UpdatePerson
 {
-    public class UpdatePersonCommandHandler:IRequestHandler<UpdatePersonCommand, Guid>
+    public class UpdatePersonCommandHandler:IRequestHandler<UpdatePersonCommand, Result>
     {
         protected readonly ITestCleanArchDbContext _context;
-        public UpdatePersonCommandHandler(ITestCleanArchDbContext context)
+        protected readonly IMapper _mapper;
+        protected readonly IMemoryCache _cache;
+
+
+        public UpdatePersonCommandHandler(ITestCleanArchDbContext context, IMapper mapper, IMemoryCache cache)
         {
             _context = context;
+            _mapper = mapper;
+            _cache = cache;
         }
-        public async Task<Guid> Handle(UpdatePersonCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(UpdatePersonCommand request, CancellationToken cancellationToken)
         {
             var person = await _context.Persons.SingleOrDefaultAsync(x => x.Id == request.Id);
             if (person is null)
-                throw new NotFoundException(nameof(Person), request.Id);
-
-            person.FirstName = request.FirstName;
-            person.LastName = request.LastName;
-            person.Email = request.Email;
-
+                return Result.Failed(new NotFoundObjectResult
+                    (new ApiMessage("موردی یافت نشد")));
+            _mapper.Map(request, person);
             await _context.SaveAsync(cancellationToken);
-
-            return person.Id;
+            _cache.Remove("Persons");
+            return Result.SuccessFul();
         }
     }
 }

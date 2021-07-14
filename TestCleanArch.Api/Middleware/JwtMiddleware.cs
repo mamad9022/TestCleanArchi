@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using TestCleanArch.Application.Authorize;
 using TestCleanArch.Application.Common.Interface;
 
-namespace TestCleanArch.Application.Authorize
+namespace TestCleanArch.Api.Middleware
 {
     public class JwtMiddleware
     {
@@ -31,7 +32,7 @@ namespace TestCleanArch.Application.Authorize
             await _next(context);
         }
 
-        private void  AttachUserToContext(HttpContext context, IUserService userService, string token)
+        private void AttachUserToContext(HttpContext context, IUserService userService, string token)
         {
             try
             {
@@ -51,7 +52,7 @@ namespace TestCleanArch.Application.Authorize
                 var userId = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
                 // attach user to context on successful jwt validation
-                context.Items["User"] = userService.GetById(userId);
+                context.Items["User"] = userService.GetByIdAsync(userId);
             }
             catch
             {

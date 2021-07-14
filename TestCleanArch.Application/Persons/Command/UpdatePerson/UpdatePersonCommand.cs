@@ -1,9 +1,10 @@
 ﻿using System;
 using MediatR;
+using TestCleanArch.Common.Result;
 
 namespace TestCleanArch.Application.Persons.Command.UpdatePerson
 {
-    public class UpdatePersonCommand : IRequest<Guid>
+    public class UpdatePersonCommand : IRequest<Result>
     {
         public Guid Id { get; set; }
         public string FirstName { get; set; }

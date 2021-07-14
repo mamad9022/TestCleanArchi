@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -32,8 +31,10 @@ namespace TestCleanArch.Application.Common.Service
             _distributedCache = distributedCache;
             _cache = cache;
         }
-        public async Task<AuthenticateResponse> Authenticate(UserRequset request, string ip)
+        public async Task<AuthenticateResponse> Authenticate(UserRequset request, HttpContext httpContext)
         {
+            string ip = httpContext.Items["UserIp"]?.ToString();
+
             var ipExist = await _distributedCache.GetStringAsync(ip, default);
             if (ipExist != null)
             {
@@ -60,16 +61,16 @@ namespace TestCleanArch.Application.Common.Service
             // authentication successful so generate jwt token
             var token = GenerateJwtToken(user);
 
-            return new AuthenticateResponse(user, token);
+            return new AuthenticateResponse(token);
         }
 
-        public async Task<Person> GetById(Guid userId)
+        public async Task<Person> GetByIdAsync(Guid userId)
         {
             var user = await _context.Persons.AsNoTracking()
                 .SingleOrDefaultAsync(x => x.Id == userId);
 
             if (user is null)
-                throw new NotFoundException(nameof(Person), userId);
+                throw new NotFoundException();
 
             return user;
 

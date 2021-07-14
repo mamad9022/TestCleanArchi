@@ -27,6 +27,7 @@ namespace TestCleanArch.Persistence.Context
         {
             if (!optionsBuilder.IsConfigured)
             {
+                optionsBuilder.EnableSensitiveDataLogging();
                 optionsBuilder.UseSqlServer(
                     @"Server=DESKTOP-HBEGIIU\SQLEXPRESS;Initial Catalog =TestDb;MultipleActiveResultSets=true;Integrated Security=True;User Id=sa;Password=AbC123_-");
             }

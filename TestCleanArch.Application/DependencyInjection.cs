@@ -1,6 +1,4 @@
-﻿using System;
-using System.Reflection;
-using MassTransit;
+﻿using System.Reflection;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,9 +13,8 @@ namespace TestCleanArch.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-          
 
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddMediatR(Assembly.GetExecutingAssembly());
 
             services.AddTransient<IMediator, Mediator>();
@@ -28,7 +25,6 @@ namespace TestCleanArch.Application
                 options.Configuration = "localhost:6379";
             });
             services.AddMemoryCache(); // Add this line
-
             #region Rabbit
 
             services.TryAddSingleton<IRabbitMqConnection>
